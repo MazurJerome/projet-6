@@ -12,6 +12,9 @@ exports.createSauce = (req, res, next) => {
       req.file.filename
     }`,
   });
+  sauce.likes = 0;
+  sauce.dislikes = 0;
+
   sauce
     .save()
     .then(() => res.status(201).json({ message: "objet sauvegardé" }))
@@ -76,42 +79,40 @@ exports.deleteSauce = (req, res, next) => {
 
 exports.modifyLikes = (req, res, next) => {
   const userLike = req.body;
-  console.log(userLike);
+
+  //console.log(userLike);
 
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
-      console.log(sauce.likes);
+      sauce.likes = sauce.usersLiked.length;
+      sauce.dislikes = sauce.usersDisliked.length;
+
       if (userLike.like === 1) {
         console.log("ajout like");
-        if (!sauce.likes) {
-          sauce.likes = 1;
-        } else {
-          sauce.likes++;
-        }
         sauce.usersLiked.push(userLike.userId);
+        sauce.likes = sauce.usersLiked.length;
         sauce.save();
       } else if (userLike.like === -1) {
         console.log("dislike");
-        console.log("ajout like");
-        if (!sauce.likes) {
-          sauce.likes = -1;
-        } else {
-          sauce.likes--;
-        }
         sauce.usersDisliked.push(userLike.userId);
+        sauce.dislikes = sauce.usersDisliked.length;
         sauce.save();
       } else if (userLike.like === 0) {
         console.log("0");
         const uLike = sauce.usersLiked.indexOf(userLike.userId);
-        if (uLike === -1) {
-          console.log(uLike);
-          console.log("sffs");
-          sauce.save();
-        } else {
-          console.log(uLike);
-          console.log("aaaaaa");
+        const uDisLike = sauce.usersDisliked.indexOf(userLike.userId);
+        console.log(uLike);
+        console.log(uDisLike);
+        if (uLike != -1) {
           sauce.usersLiked.splice(uLike, 1);
-          console.log(sauce.usersLiked);
+          sauce.likes = sauce.usersLiked.length;
+          sauce.dislikes = sauce.usersDisliked.length;
+          sauce.save();
+        }
+        if (uDisLike != -1) {
+          sauce.usersDisliked.splice(uDisLike, 1);
+          sauce.likes = sauce.usersLiked.length;
+          sauce.dislikes = sauce.usersDisliked.length;
           sauce.save();
         }
       }
