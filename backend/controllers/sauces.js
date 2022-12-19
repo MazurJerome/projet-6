@@ -1,6 +1,7 @@
 const Sauce = require("../models/Sauces");
 const fs = require("fs");
 
+// creation d une sauce
 exports.createSauce = (req, res, next) => {
   const sauceObjet = JSON.parse(req.body.sauce);
   delete sauceObjet._id;
@@ -21,18 +22,21 @@ exports.createSauce = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
+//recuperation d une seule sauce
 exports.getOneSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => res.status(200).json(sauce))
     .catch((error) => res.status(404).json({ error }));
 };
 
+//recuperation de toutes les sauces
 exports.getAllSauce = (req, res, next) => {
   Sauce.find()
     .then((sauces) => res.status(200).json(sauces))
     .catch((error) => res.status(400).json({ error }));
 };
 
+//modification d une sauce
 exports.modifySauce = (req, res, next) => {
   const sauceObjet = req.file
     ? {
@@ -46,8 +50,9 @@ exports.modifySauce = (req, res, next) => {
   delete sauceObjet._userId;
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
+      //si celui qui veut la modifier est bien le createur
       if (sauce.userId != req.auth.userId) {
-        res.status(401).json({ message: "non-authorisé" });
+        res.status(403).json({ message: "non-authorisé" });
       } else {
         Sauce.updateOne(
           { _id: req.params.id },
@@ -60,11 +65,13 @@ exports.modifySauce = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
+//suppression d une sauce
 exports.deleteSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
+      //si celui qui veut la modifier est bien le createur
       if (sauce.userId != req.auth.userId) {
-        res.status(401).json({ message: "non-authorisé" });
+        res.status(403).json({ message: "non-authorisé" });
       } else {
         const filename = sauce.imageUrl.split("/images/")[1];
         fs.unlink(`images/${filename}`, () => {
@@ -77,18 +84,13 @@ exports.deleteSauce = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
+//gestion des likes et dislikes
 exports.modifyLikes = (req, res, next) => {
   const userLike = req.body;
 
-  //console.log(userLike);
-
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
-      sauce.likes = sauce.usersLiked.length;
-      sauce.dislikes = sauce.usersDisliked.length;
-
       if (userLike.like === 1) {
-        console.log("ajout like");
         sauce.usersLiked.push(userLike.userId);
         sauce.likes = sauce.usersLiked.length;
         sauce.save();
@@ -98,11 +100,11 @@ exports.modifyLikes = (req, res, next) => {
         sauce.dislikes = sauce.usersDisliked.length;
         sauce.save();
       } else if (userLike.like === 0) {
-        console.log("0");
+        // on verifie si le userId est present dans le tableau des userlikes
+        //et les tableau des userdislikes, puis on le supprime si besoin
         const uLike = sauce.usersLiked.indexOf(userLike.userId);
         const uDisLike = sauce.usersDisliked.indexOf(userLike.userId);
-        console.log(uLike);
-        console.log(uDisLike);
+
         if (uLike != -1) {
           sauce.usersLiked.splice(uLike, 1);
           sauce.likes = sauce.usersLiked.length;
