@@ -12,9 +12,11 @@ exports.createSauce = (req, res, next) => {
     imageUrl: `${req.protocol}://${req.get("host")}/images/${
       req.file.filename
     }`,
+    likes: 0,
+    dislikes: 0,
+    usersLiked: [],
+    usersDisliked: [],
   });
-  sauce.likes = 0;
-  sauce.dislikes = 0;
 
   sauce
     .save()
@@ -95,7 +97,6 @@ exports.modifyLikes = (req, res, next) => {
         sauce.likes = sauce.usersLiked.length;
         sauce.save();
       } else if (userLike.like === -1) {
-        console.log("dislike");
         sauce.usersDisliked.push(userLike.userId);
         sauce.dislikes = sauce.usersDisliked.length;
         sauce.save();
