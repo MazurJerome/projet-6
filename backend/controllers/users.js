@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+require("dotenv").config();
 
 //creation d un nouvelle utilisateur
 exports.signup = (req, res, next) => {
@@ -38,7 +39,7 @@ exports.login = (req, res, next) => {
                   {
                     userId: user._id,
                   },
-                  "RANDOM_TOKEN_LOGIN_CRYPT",
+                  `${process.env.API_Key}`,
                   { expiresIn: "24h" }
                 ),
               });
